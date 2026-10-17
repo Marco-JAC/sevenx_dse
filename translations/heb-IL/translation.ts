@@ -39,6 +39,14 @@
         <translation>עורך מסד הנתונים</translation>
     </message>
     <message>
+        <source>Change database</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Return to the database selector</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>The Database Source Editor opens the database of this site in AdminNeo, inside the administration: browse and edit the rows of any table, run SQL, look at the structure, export and import. It works on the live data directly, past every check the administration makes.</source>
         <translation>עורך מקור מסד הנתונים פותח את מסד הנתונים של אתר זה ב־AdminNeo, בתוך ממשק הניהול: דפדוף ועריכה של השורות בכל טבלה, הרצת SQL, עיון במבנה, ייצוא וייבוא. הוא פועל ישירות על הנתונים החיים, ועוקף כל בדיקה שממשק הניהול מבצע.</translation>
     </message>

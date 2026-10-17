@@ -40,6 +40,14 @@
         <translation>De&apos; pa&apos; choHwI&apos;</translation>
     </message>
     <message>
+        <source>Change database</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Return to the database selector</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>The Database Source Editor opens the database of this site in AdminNeo, inside the administration: browse and edit the rows of any table, run SQL, look at the structure, export and import. It works on the live data directly, past every check the administration makes.</source>
         <translation>yoSvam De&apos; pa&apos; poSmoH De&apos; pa&apos; Hal choHwI&apos;; AdminNeo lo&apos;, loHmeH jIH qoD: De&apos; tetlh mIrmey tIleng &apos;ej tIchoH, SQL yIQapmoH, qach yIlegh, yIlel &apos;ej yIqem. Qapchu&apos;bogh De&apos; choH qat; loHmeH jIH &apos;olghachmey Hoch buSbe&apos;.</translation>
     </message>

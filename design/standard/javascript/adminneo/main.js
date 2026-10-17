@@ -268,7 +268,7 @@ isSqlite=/sqlite/.test(selectValue(driverSelect));['username'].forEach(field=>{c
 tr=table.querySelector('tr[data-field="'+field+'"]');if(!tr)return;tr.style.display=isSqlite?'none':'';const
 input=tr.querySelector('input');if(input)input.disabled=isSqlite;});const
 serverTr=table.querySelector('tr[data-field="server"]');const
-serverTh=serverTr?serverTr.querySelector('th'):null;const
+serverTh=serverTr?(serverTr.querySelector('th label')||serverTr.querySelector('th')):null;const
 serverInput=serverTr?serverTr.querySelector('input'):null;if(serverTr){serverTr.style.display='';}if(serverInput){serverInput.disabled=false;}if(serverTh&&serverLabelDefault===null)serverLabelDefault=serverTh.textContent;if(serverInput&&serverPlaceholderDefault===null)serverPlaceholderDefault=serverInput.placeholder;if(serverTh)serverTh.textContent=isSqlite?'File':(serverLabelDefault||'');if(serverInput)serverInput.placeholder=isSqlite?'var/storage/sqlite3/test.db':(serverPlaceholderDefault||'');const
 dbTr=table.querySelector('tr[data-field="db"]');if(dbTr){dbTr.style.display=isSqlite?'none':'';const
 dbInput=dbTr.querySelector('input');if(dbInput)dbInput.disabled=isSqlite;}};driverSelect.onchange();}document.addEventListener('DOMContentLoaded',()=>{const

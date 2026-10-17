@@ -412,7 +412,13 @@ abstract class Origin extends Plugin
 	public function getLoginFormRow(string $fieldName, string $label, string $field): string
 	{
 		if ($label) {
-			return "<tr data-field=\"$fieldName\"><th>$label</th><td>$field</td></tr>\n";
+			// The label names its field (the first input or select, given an id when it has none).
+			if (!preg_match('~<(?:input|select|textarea)\b[^>]*\sid=["\']([^"\']+)~', $field, $match)) {
+				$id = "login-" . preg_replace('~\W~', '', $fieldName);
+				$field = preg_replace('~<(input|select|textarea)\b~', "<$1 id='$id'", $field, 1);
+				$match = [1 => $id];
+			}
+			return "<tr data-field=\"$fieldName\"><th><label for='" . h($match[1]) . "'>$label</label></th><td>$field</td></tr>\n";
 		} else {
 			return "$field\n";
 		}

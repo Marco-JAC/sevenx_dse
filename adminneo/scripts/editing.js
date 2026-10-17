@@ -104,10 +104,10 @@ function initLoginDriver(driverSelect) {
 			if (input) input.disabled = isSqlite;
 		});
 
-		// Server row: for SQLite this is the file path, relabel it "File".
+		// Server row: for SQLite this is the file path, relabel it "File" (the text of its <label>, which names the field).
 		// For other drivers restore the original label/placeholder.
 		const serverTr = table.querySelector('tr[data-field="server"]');
-		const serverTh = serverTr ? serverTr.querySelector('th') : null;
+		const serverTh = serverTr ? (serverTr.querySelector('th label')||serverTr.querySelector('th')) : null;
 		const serverInput = serverTr ? serverTr.querySelector('input') : null;
 		if (serverTr) { serverTr.style.display = ''; }
 		if (serverInput) { serverInput.disabled = false; }

@@ -383,69 +383,31 @@ class Dashboard extends \Exponential\Runnable\ModuleView
         }
         unset( $_neoIsDownload );
 
-        // Post-process AdminNeo's captured HTML to forcibly fix position:fixed elements.
-        // We do this by direct regex replacement on the HTML string — this works
-        // regardless of any opcode-cache state on design.inc.php and is guaranteed
-        // to override AdminNeo's compiled stylesheet rules.
-
-        // 1. #content wrapper — has margin-inline-start:13rem and padding-top:2rem
-        //    from the compiled CSS. Must be zeroed so it fills the flex row correctly.
-        $_neoHtml = preg_replace(
-            '~<div\s+id=[\'"]content[\'"][^>]*>~',
-            "<div id='content' style='margin-inline-start:0;padding-top:0;flex:1 1 0%;min-width:0;overflow-x:auto;display:flex;flex-direction:column'>",
-            $_neoHtml
-        );
-
-        // 3. Breadcrumb header bar (position:fixed top:0 width:100% in AdminNeo CSS).
-        //    Use limit=1 so we only hit the #content>.header, not the nav-panel .header.
-        $_neoHtml = preg_replace(
-            '~<div\s+class=[\'"]header[\'"][^>]*>~',
-            "<div class='header' style='position:relative;width:100%;max-width:100%;height:auto;top:auto;z-index:1;padding:6px 10px;border-bottom:1px solid #e0e0e0;box-sizing:border-box'>",
-            $_neoHtml,
-            1
-        );
-
-        // 4. Navigation panel (position:fixed left:0 top:0 bottom:0 in AdminNeo CSS).
-        //    Add order:-1 so it appears left of #content in the flex row.
-        $_neoHtml = preg_replace(
-            '~<div\s+id=[\'"]navigation-panel[\'"][^>]*>~',
-            "<div id='navigation-panel' class='navigation-panel' style='position:relative;left:auto;top:auto;bottom:auto;width:13rem;flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;z-index:1;border-right:1px solid #e0e0e0;background:#fcfcfc;order:-1'>",
-            $_neoHtml
-        );
-
-        // 5. Footer / logout bar (position:fixed top:0 right:0 in AdminNeo CSS).
-        // Also inject a "Change database" link into the footer for session reset.
+        // AdminNeo's page drawn inside the administration. Its fixed header, navigation panel and footer take their
+        // place in the editor's row through the stylesheets (design.ini BackendCSSFileList: adminneo/adminneo-embedded.css,
+        // AdminNeo's own rules scoped to .a4-dse-editor, and dse.css, the layout and the colors from the administration's
+        // tokens), not through inline styles: the page follows admin4's light and dark mode.
+        // The footer of the navigation panel gets the link back to the gate ("Change database").
         $_dseDashBase = rtrim( preg_replace( '~\?.*~', '', $_SERVER['REQUEST_URI'] ), '/' );
         $_dseSwitchUrl = $_dseDashBase . '?dse_switch=' . urlencode( $_SESSION['dse_switch_token'] );
-        $_dseChangeLink = '<a href="' . htmlspecialchars( $_dseSwitchUrl, ENT_QUOTES ) . '" '
-            . 'style="display:block;margin-top:6px;font-size:12px;color:#888;text-decoration:none" '
-            . 'title="Return to database selector">&#8635; Change database&hellip;</a>';
+        $_dseChangeLink = '<a class="a4-dse-switch" href="' . htmlspecialchars( $_dseSwitchUrl, ENT_QUOTES ) . '" title="'
+            . htmlspecialchars( \ezpI18n::tr( 'extension/sevenx_dse', 'Return to the database selector' ), ENT_QUOTES ) . '">'
+            . '<span aria-hidden="true">&#8635;</span> '
+            . htmlspecialchars( \ezpI18n::tr( 'extension/sevenx_dse', 'Change database' ), ENT_QUOTES ) . '&hellip;</a>';
         unset( $_dseDashBase, $_dseSwitchUrl );
+        // Append the change-database link just before the first closing </div> after the footer opens (in its toolbox)
         $_neoHtml = preg_replace(
-            '~<div\s+class=[\'"\']footer[\'"\'][^>]*>~',
-            "<div class='footer' style='position:relative;top:auto;right:auto;height:auto;line-height:normal;margin-top:auto;padding:8px 10px;border-top:1px solid #e0e0e0;flex-flow:column;align-items:flex-start'>",
-            $_neoHtml
-        );
-        // Append the change-database link just before the closing </div> of .footer
-        $_neoHtml = preg_replace(
-            '~(<div[^>]+class=\'footer\'[^>]*>)(.*?)(</div>)~s',
-            '$1$2' . $_dseChangeLink . '$3',
+            '~(<div[^>]+class=[\'"]footer[\'"][^>]*>)(.*?)(</div>)~s',
+            '$1$2' . str_replace( array( '\\', '$' ), array( '\\\\', '\\$' ), $_dseChangeLink ) . '$3',
             $_neoHtml,
             1
         );
         unset( $_dseChangeLink );
 
-        // 6. Hamburger button — always hidden since nav panel is always visible.
-        $_neoHtml = preg_replace(
-            '~<button\s+id=[\'"]navigation-button[\'"][^>]*>~',
-            "<button id='navigation-button' class='button light navigation-button' style='display:none'>",
-            $_neoHtml
-        );
-
-        // Wrap in #adminneo-root flex row container.
-        $_neoRootStyle = 'display:flex;flex-direction:row;align-items:stretch;position:relative;width:100%;min-height:500px;background:url(/design/admin3/images/3/dark_back.png)';
-        $_neoOutput = '<div id="adminneo-root" class="ltr nojs" style="' . $_neoRootStyle . '">' . $_neoHtml . '</div>';
-        unset( $_neoRootStyle, $_neoHtml );
+        // The row that holds AdminNeo: .a4-dse-editor scopes AdminNeo's stylesheet; ltr and js are the classes AdminNeo
+        // puts on <body> (its scripts run here: main.js and jush.js are loaded by dse/dashboard.tpl).
+        $_neoOutput = '<div id="adminneo-root" class="a4-dse-editor ltr js">' . $_neoHtml . '</div>';
+        unset( $_neoHtml );
 
         $tpl = \eZTemplate::factory();
         $tpl->setVariable( 'neo_body', $_neoOutput );

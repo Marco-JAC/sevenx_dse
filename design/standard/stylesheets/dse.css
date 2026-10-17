@@ -1,0 +1,182 @@
+/* sevenx_dse: the Database Source Editor (dse/dashboard) in the administration.
+
+   Loaded on every administration page through design.ini [StylesheetSettings] BackendCSSFileList, after
+   adminneo/adminneo-embedded.css (AdminNeo's own stylesheets, scoped to .a4-dse-editor). Everything here is scoped
+   to .a4-dse-* and built from the administration's --a4-* tokens only, so the gate page and the editor follow
+   admin4's light and dark mode (html[data-a4-theme="dark"]) and fit the classic admin design, whose components.css
+   has the same tokens. The gate page itself is drawn with the shared components (.a4-page, .a4-notice, .a4-figures,
+   .a4-cards, .a4-check, .a4-toolbar, .a4-btn); this file only adds what they cannot do. */
+
+/* ---- The gate page ------------------------------------------------------------------------------------------ */
+
+.a4-dse-cando { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+.a4-dse-cando .a4-h3 { margin-bottom: var(--a4-space-1); }
+.a4-dse-list { margin: 0; padding-inline-start: var(--a4-space-4); }
+.a4-dse-list li + li { margin-top: var(--a4-space-1); }
+.a4-dse-after { margin: var(--a4-space-3) 0 0; }
+
+/* ---- The embedded editor: AdminNeo's colors from the tokens ---------------------------------------------------- */
+
+/* AdminNeo draws everything from these variables. They are set to the administration's tokens, which have their own
+   dark values, so the editor is light or dark with the administration. The dark selector is listed too, so these win
+   over AdminNeo's own dark variables (adminneo-embedded.css) and only its select arrow and color-scheme stay. */
+.a4-dse-editor,
+html[data-a4-theme="dark"] .a4-dse-editor {
+  --font-family: var(--a4-font);
+  --font-family-mono: var(--a4-mono);
+  --body-bg: var(--a4-card);
+  --body-text: var(--a4-ink);
+  --body-icon: var(--a4-muted);
+  --note-text: var(--a4-muted);
+  --logo-text: var(--a4-muted);
+  --panel-bg: var(--a4-soft);
+  --panel-border: var(--a4-line);
+  --header-text: var(--a4-ink);
+  --list-hover: var(--a4-zebra);
+  --input-bg: var(--a4-field);
+  --input-text: var(--a4-ink);
+  --input-border: var(--a4-field-line);
+  --required-border: var(--a4-bad);
+  --button-bg: var(--a4-card);
+  --button-bg-hover: var(--a4-soft);
+  --button-border: var(--a4-accent-text);
+  --button-border-hover: var(--a4-ink);
+  --button-text: var(--a4-accent-text);
+  --button-text-hover: var(--a4-ink);
+  --button-default-bg: var(--a4-accent-strong);
+  --button-default-bg-hover: var(--a4-accent-press);
+  --button-default-border: var(--a4-accent-strong);
+  --button-default-border-hover: var(--a4-accent-press);
+  --button-default-text: var(--a4-on-accent);
+  --button-default-text-hover: var(--a4-on-accent-hover);
+  --table-bg: var(--a4-card);
+  --table-header-bg: var(--a4-soft);
+  --table-border: var(--a4-line);
+  --table-row-border: var(--a4-line);
+  --code-bg: var(--a4-code-bg);
+  --code-border: var(--a4-line);
+  --message-ok-bg: var(--a4-ok-bg);
+  --message-ok-border: var(--a4-ok-line);
+  --message-ok-text: var(--a4-ok);
+  --message-error-bg: var(--a4-bad-bg);
+  --message-error-border: var(--a4-bad-line);
+  --message-error-text: var(--a4-bad);
+  --warning-text: var(--a4-warn);
+  --version-text: var(--a4-warn);
+  --link-text: var(--a4-accent-text);
+  --link-text-hover: var(--a4-ink);
+  --selection-bg: var(--a4-accent-soft);
+  --list-active: var(--a4-accent-soft);
+  --list-active-hover: var(--a4-accent-soft);
+  --input-border-radius: var(--a4-radius-s);
+  --fieldset-border-radius: var(--a4-radius-s);
+  --box-border-radius: var(--a4-radius-s);
+}
+
+/* ---- The embedded editor: its layout ----------------------------------------------------------------------------- */
+
+/* One card in the content column: the navigation panel on the left, AdminNeo's page on the right. AdminNeo places
+   its header, panel and footer with position: fixed for a page of its own; here they take their place in a grid.
+   The panel comes after the page in AdminNeo's markup: both have a fixed cell, so the page does not move when the
+   panel arrives (no layout shift while the page loads). On a narrow column the panel goes under the page. */
+.a4-dse-editor {
+  container: dse-editor / inline-size;
+  display: grid;
+  grid-template-columns: var(--menu-width) minmax(0, 1fr);
+  align-items: stretch;
+  position: relative;
+  width: 100%;
+  min-height: 32rem;
+  overflow: hidden;
+  border: 1px solid var(--a4-line);
+  border-radius: var(--a4-radius-s);
+  background-color: var(--a4-card);
+  color: var(--a4-ink);
+  font-family: var(--a4-font);
+  font-size: var(--a4-text-m);
+  line-height: var(--a4-leading);
+  box-shadow: var(--a4-shadow-s);
+}
+.a4-dse-editor #navigation-panel {
+  grid-column: 1;
+  grid-row: 1;
+  position: static;
+  inset: auto;
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  padding-top: 0;
+  overflow: visible;
+  border-inline-end: 1px solid var(--a4-line);
+  background-color: var(--a4-soft);
+  box-shadow: none;
+  z-index: auto;
+}
+.a4-dse-editor #navigation-panel .header {
+  position: static;
+  width: auto;
+  min-width: 0;
+  padding-inline-start: var(--a4-space-3);
+  border-inline-end: 0;
+}
+.a4-dse-editor #navigation-panel .footer {
+  position: static;
+  inset: auto;
+  height: auto;
+  margin-top: auto;
+  padding: var(--a4-space-2) var(--a4-space-3);
+  flex-flow: column;
+  align-items: flex-start;
+  line-height: normal;
+  border-top: 1px solid var(--a4-line);
+  border-bottom: 0;
+  background-color: transparent;
+}
+.a4-dse-editor #content {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  margin-inline-start: 0;
+  padding-top: 0;
+  padding-bottom: var(--a4-space-4);
+  overflow-x: auto;
+}
+.a4-dse-editor #content > .header {
+  position: static;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  padding: var(--a4-space-2) var(--a4-space-3);
+  overflow: hidden;
+  z-index: auto;
+}
+.a4-dse-editor thead { top: 0; }
+/* The panel is always shown, so AdminNeo's menu button is not needed */
+.a4-dse-editor #navigation-button { display: none; }
+.a4-dse-editor #help { z-index: var(--a4-z-popover); }
+.a4-dse-editor table { max-width: 100%; }
+
+/* The way back to the gate, at the foot of the panel */
+.a4-dse-editor .a4-dse-switch {
+  display: block;
+  margin-top: var(--a4-space-2);
+  padding: 0;
+  font-size: var(--a4-text-xs);
+  color: var(--a4-muted);
+}
+.a4-dse-editor .a4-dse-switch:hover { color: var(--a4-accent-text); text-decoration: underline; }
+
+@container dse-editor (max-width: 33rem) {
+  .a4-dse-editor #content { grid-column: 1 / -1; grid-row: 1; }
+  .a4-dse-editor #navigation-panel {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    border-inline-end: 0;
+    border-top: 1px solid var(--a4-line);
+  }
+}
+
+/* Labels in AdminNeo's forms read like the text around them (the administration's label rules are for its own forms) */
+.a4-dse-editor#adminneo-root label { font-size: inherit; font-weight: inherit; line-height: inherit; }

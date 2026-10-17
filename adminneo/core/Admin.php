@@ -26,7 +26,7 @@ class Admin extends Origin
 	 */
 	public function getServiceTitle(): string
 	{
-		return "<a href='" . h(HOME_URL) . "'><svg role='img' class='logo' width='133' height='28'><desc>AdminNeo</desc><use href='" . link_files("logo.svg", ["images/logo.svg"]) . "#logo'/></svg></a>";
+		return "<a href='" . h(HOME_URL) . "' aria-label='AdminNeo'><svg class='logo' width='133' height='28' aria-hidden='true' focusable='false'><use href='" . link_files("logo.svg", ["images/logo.svg"]) . "#logo'/></svg></a>";
 	}
 
 	/**

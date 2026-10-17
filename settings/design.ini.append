@@ -3,4 +3,12 @@
 [ExtensionSettings]
 DesignExtensions[]=sevenx_dse
 
+[StylesheetSettings]
+# The Database Source Editor (dse/dashboard): AdminNeo's stylesheets scoped to the embedded editor
+# (adminneo/adminneo-embedded.css, built by adminneo/build-embedded-css.php), then the gate page and the editor's
+# layout and colors from the administration's tokens (dse.css). Everything is scoped (.a4-dse-*), so it is safe on
+# every administration page, and packed with the other stylesheets.
+BackendCSSFileList[]=adminneo/adminneo-embedded.css
+BackendCSSFileList[]=dse.css
+
 */ ?>

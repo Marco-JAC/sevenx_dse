@@ -138,11 +138,10 @@ function page_header(string $title, $breadcrumb = []): void
 	echo "<div id='help' class='jush-" . DIALECT . " jsonly hidden'></div>";
     echo script("initHelpPopup();");
 
-    $neo_embedded = defined('NEO_BASE_URL');
-    $content_style = $neo_embedded ? " style='margin-inline-start:0;padding-top:0;flex:1 1 0%;min-width:0;overflow-x:auto'" : "";
-    echo "<div id='content'$content_style>\n";
-	$header_style = $neo_embedded ? " style='position:relative;width:100%;max-width:100%;height:auto;top:auto;z-index:1;padding:6px 10px;border-bottom:1px solid #e0e0e0;box-sizing:border-box;overflow:hidden'" : "";
-	echo "<div class='header'$header_style>\n";
+	// Embedded in the administration (NEO_BASE_URL), the layout of #content, the header, the navigation panel and its
+	// footer comes from sevenx_dse's stylesheets (dse.css), not from inline styles.
+	echo "<div id='content'>\n";
+	echo "<div class='header'>\n";
 
 	if ($breadcrumb !== null) {
 		echo '<nav class="breadcrumbs"><ul>';
@@ -330,13 +329,11 @@ function page_footer(?string $missing = null): void
 
 	// Main navigation is printed after the page content, because databases and tables can be changed after the query
 	// execution in the 'SQL command' page.
-	echo "<button id='navigation-button' class='button light navigation-button' style='display:none'>", icon_solo("menu"), icon_solo("close"), "</button>";
-	$neo_embedded = defined('NEO_BASE_URL');
-	$nav_style = $neo_embedded ? " style='position:relative;left:auto;top:auto;bottom:auto;width:13rem;flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;z-index:1;border-right:1px solid #e0e0e0;background:#fcfcfc;order:-1'" : "";
-	echo "<div id='navigation-panel' class='navigation-panel'$nav_style>\n";
+	echo "<button id='navigation-button' class='button light navigation-button' aria-label='" . h(lang('Menu')) . "'>", icon_solo("menu"), icon_solo("close"), "</button>";
+	echo "<div id='navigation-panel' class='navigation-panel'>\n";
 	Admin::get()->printNavigation($missing);
 
-	echo "<div class='footer'" . ($neo_embedded ? " style='position:relative;top:auto;right:auto;height:auto;line-height:normal;margin-top:auto;border-top:1px solid #e0e0e0;border-bottom:none'" : "") . ">\n";
+	echo "<div class='footer'>\n";
 
 	echo "<div class='toolbox'>";
 	if ($missing == "auth") {

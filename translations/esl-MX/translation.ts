@@ -37,6 +37,14 @@
         <translation>Editor de base de datos</translation>
     </message>
     <message>
+        <source>Change database</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Return to the database selector</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>The Database Source Editor opens the database of this site in AdminNeo, inside the administration: browse and edit the rows of any table, run SQL, look at the structure, export and import. It works on the live data directly, past every check the administration makes.</source>
         <translation>El editor de fuentes de base de datos abre la base de datos de este sitio en AdminNeo, dentro de la administración: explora y edita las filas de cualquier tabla, ejecuta SQL, revisa la estructura, exporta e importa. Trabaja directamente sobre los datos en vivo, sin pasar por ninguna de las comprobaciones que hace la administración.</translation>
     </message>

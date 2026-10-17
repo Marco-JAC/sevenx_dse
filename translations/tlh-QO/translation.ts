@@ -41,11 +41,11 @@
     </message>
     <message>
         <source>Change database</source>
-        <translation type="unfinished"></translation>
+        <translation>De&apos; qengwI&apos; yItam</translation>
     </message>
     <message>
         <source>Return to the database selector</source>
-        <translation type="unfinished"></translation>
+        <translation>De&apos; qengwI&apos; wIvwI&apos;Daq yIchegh</translation>
     </message>
     <message>
         <source>The Database Source Editor opens the database of this site in AdminNeo, inside the administration: browse and edit the rows of any table, run SQL, look at the structure, export and import. It works on the live data directly, past every check the administration makes.</source>

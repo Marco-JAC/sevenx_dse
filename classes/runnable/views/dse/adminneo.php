@@ -58,13 +58,76 @@ class Adminneo extends \Exponential\Runnable\ModuleView
         session_cache_limiter( '' );
         session_name( 'neo_sid' );
         session_set_cookie_params( 0, preg_replace( '~\?.*~', '', $_SERVER['REQUEST_URI'] ), '', false, true );
+        // Name the id explicitly: the one in AdminNeo's own cookie, or none (a new one). Under Exponential Velocity
+        // the session layer keeps the closed session's id, so session_start() reopened Exponential's session under
+        // the new name, and AdminNeo's logout would have ended the administrator's session too.
+        session_id( self::sessionIdFromCookie( $_COOKIE, 'neo_sid' ) );
         session_start();
 
-        // Mark the eZ exit as clean before AdminNeo's internal exit() fires.
-        \eZExecution::setCleanExit();
-        include $adminNeoDir . '/index.php';
+        // AdminNeo can run once per process: it defines constants from the request, declares driver functions and
+        // switches the session name and cookie path above. Under Exponential Velocity a worker serves many requests,
+        // so ask for this one to be replaced after it answers (the same as dse/dashboard does).
+        self::retireWorkerAfterResponse();
 
-        return $this->viewResult( isset( $Result ) ? $Result : null, null );
+        // AdminNeo ends its page by throwing \AdminNeo\EzExit instead of calling exit(). Catch only that: the
+        // request then ends through the kernel's clean exit below, outside any try, because under Velocity
+        // eZExecution::cleanExit() ends the request with an exception of its own that must not be caught here.
+        // Uncaught, EzExit reached the kernel's exception handler: a 500 under Velocity and an error page appended
+        // to AdminNeo's page under PHP-FPM (#610).
+        \eZExecution::setCleanExit();
+        self::includeAdminNeo( $adminNeoDir . '/index.php' );
+
+        // AdminNeo printed a complete HTML document (or sent a redirect or a download), never the page layout.
+        \eZExecution::cleanExit();
+    }
+
+    /**
+     * Includes AdminNeo's entry script; returns true when AdminNeo ended its page with \AdminNeo\EzExit (its
+     * exit()), false when the script ran to its end. Any other exception goes on to the caller.
+     *
+     * @param string $file the script (adminneo/index.php)
+     * @return bool
+     */
+    public static function includeAdminNeo( $file )
+    {
+        try
+        {
+            include $file;
+        }
+        catch ( \AdminNeo\EzExit $e )
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * The session id in cookie $name when it has the form PHP accepts, else '' (start a new session).
+     *
+     * @param array $cookies $_COOKIE
+     * @param string $name the cookie
+     * @return string
+     */
+    public static function sessionIdFromCookie( array $cookies, $name )
+    {
+        $id = isset( $cookies[$name] ) && is_string( $cookies[$name] ) ? $cookies[$name] : '';
+        return preg_match( '/^[a-zA-Z0-9,-]{22,256}$/D', $id ) ? $id : '';
+    }
+
+    /**
+     * Under Exponential Velocity, asks for the worker that serves this request to be replaced after it answers;
+     * nothing elsewhere. Returns whether it asked.
+     *
+     * @return bool
+     */
+    public static function retireWorkerAfterResponse()
+    {
+        if ( class_exists( 'Q_WebServer_Pool', false ) && method_exists( 'Q_WebServer_Pool', 'retireAfterResponse' ) )
+        {
+            \Q_WebServer_Pool::retireAfterResponse( 'AdminNeo defines request constants and can run once per process' );
+            return true;
+        }
+        return false;
     }
 }
 

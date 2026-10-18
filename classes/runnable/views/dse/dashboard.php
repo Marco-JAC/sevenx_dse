@@ -59,6 +59,19 @@ class Dashboard extends \Exponential\Runnable\ModuleView
 
         $adminNeoDir = realpath( dirname( $this->scriptFile() ) . '/../../adminneo' );
 
+        // AdminNeo can run once per process: it defines constants (server, database,
+        // URLs) from the request and declares driver functions per request, and a
+        // second include in the same process dies redeclaring its classes. This view
+        // also defines NEO_BASE_URL, which tells AdminNeo it is embedded here, before
+        // its warning gate and redirects end the request. Under Exponential Velocity a
+        // worker serves many requests, so ask for this one to be replaced after it
+        // answers, first, on every path: a worker left with NEO_BASE_URL served
+        // dse/adminneo without its document head and Content-Security-Policy (#619).
+        if ( class_exists( 'Q_WebServer_Pool', false ) && method_exists( 'Q_WebServer_Pool', 'retireAfterResponse' ) )
+        {
+            \Q_WebServer_Pool::retireAfterResponse( 'AdminNeo defines request constants and can run once per process' );
+        }
+
         // ── Feature flags ─────────────────────────────────────────────────────────
         // Set to false to skip the AdminNeo login screen and auto-authenticate using
         // credentials from site.ini (useful once the tool is trusted on this install).
@@ -324,15 +337,6 @@ class Dashboard extends \Exponential\Runnable\ModuleView
         // buffer is active, and functions.inc.php calls ob_flush() in streaming paths.
         // We pre-start TWO levels so AdminNeo's own ob_start() is a no-op (ob_get_level
         // is already >0), and then drain all levels with a loop after the include.
-        // AdminNeo can run once per process: it defines constants (server, database,
-        // URLs) from the request and declares driver functions per request, and a
-        // second include in the same process dies redeclaring its classes. Under
-        // Exponential Velocity a worker serves many requests, so ask for this one to
-        // be replaced after it answers; the next DSE request gets a fresh worker.
-        if ( class_exists( 'Q_WebServer_Pool', false ) && method_exists( 'Q_WebServer_Pool', 'retireAfterResponse' ) )
-        {
-            \Q_WebServer_Pool::retireAfterResponse( 'AdminNeo defines request constants and can run once per process' );
-        }
 
         $_neoObLevel = ob_get_level();
         ob_start();

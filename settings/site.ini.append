@@ -3,4 +3,12 @@
 [RegionalSettings]
 TranslationExtensions[]=sevenx_dse
 
+[ContentSecurityPolicy]
+# dse/adminneo sends AdminNeo's own Content-Security-Policy, with the nonce of
+# its inline scripts, in place of the kernel's. The kernel's policy for that
+# view is report-only, so it can never block AdminNeo, also on a server that
+# keeps both headers; the view removes the kernel's report-only header, and
+# the page carries AdminNeo's policy only.
+ReportOnlyViews[]=dse/adminneo
+
 */ ?>

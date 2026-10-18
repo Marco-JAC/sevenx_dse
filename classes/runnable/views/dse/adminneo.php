@@ -37,6 +37,23 @@ class Adminneo extends \Exponential\Runnable\ModuleView
 
         $adminNeoDir = realpath( dirname( $this->scriptFile() ) . '/../../adminneo' );
 
+        // AdminNeo can run once per process: it defines constants from the request, declares driver functions and
+        // switches the session name and cookie path below. Under Exponential Velocity a worker serves many requests,
+        // so ask for this one to be replaced after it answers (the same as dse/dashboard does), before anything here
+        // defines a constant of its own.
+        self::retireWorkerAfterResponse();
+
+        // A process that already ran AdminNeo, or that dse/dashboard prepared for it (NEO_BASE_URL), cannot serve
+        // this page: AdminNeo would believe it is embedded in the dashboard, leave out its own document head and
+        // Content-Security-Policy (with the nonce of its inline scripts), and the kernel's enforced policy would
+        // block those scripts (#619). The worker is retired above; the browser asks again in a moment and gets a
+        // fresh one. Under PHP-FPM a process never starts with these, so this never answers there.
+        if ( self::processRanAdminNeo() )
+        {
+            self::answerReloadSoon();
+            \eZExecution::cleanExit();
+        }
+
         // DB credentials and server config are read entirely from adminneo-config.php
         // by AdminNeo's Origin::create() — no URL parameters needed.
         // The login form pre-fills username + password from the config (Admin.php patch).
@@ -64,10 +81,11 @@ class Adminneo extends \Exponential\Runnable\ModuleView
         session_id( self::sessionIdFromCookie( $_COOKIE, 'neo_sid' ) );
         session_start();
 
-        // AdminNeo can run once per process: it defines constants from the request, declares driver functions and
-        // switches the session name and cookie path above. Under Exponential Velocity a worker serves many requests,
-        // so ask for this one to be replaced after it answers (the same as dse/dashboard does).
-        self::retireWorkerAfterResponse();
+        // AdminNeo sends its own Content-Security-Policy, which replaces the kernel's enforced one. The kernel's
+        // report-only companion (ReportOnlyDirectives[]) is another header that AdminNeo's does not replace: without
+        // AdminNeo's nonce it would report each of AdminNeo's inline scripts. This page answers with AdminNeo's
+        // policy only.
+        self::removeKernelReportOnlyPolicy();
 
         // AdminNeo ends its page by throwing \AdminNeo\EzExit instead of calling exit(). Catch only that: the
         // request then ends through the kernel's clean exit below, outside any try, because under Velocity
@@ -112,6 +130,63 @@ class Adminneo extends \Exponential\Runnable\ModuleView
     {
         $id = isset( $cookies[$name] ) && is_string( $cookies[$name] ) ? $cookies[$name] : '';
         return preg_match( '/^[a-zA-Z0-9,-]{22,256}$/D', $id ) ? $id : '';
+    }
+
+    /**
+     * Whether this process already ran AdminNeo or was prepared for it by dse/dashboard: AdminNeo's request constants
+     * (NEO_BASE_URL, which makes AdminNeo believe it is embedded in the dashboard, or AdminNeo\SERVER) are defined, or
+     * its classes are loaded. Only a persistent worker (Exponential Velocity) can start a request like that.
+     *
+     * @return bool
+     */
+    public static function processRanAdminNeo()
+    {
+        return defined( 'NEO_BASE_URL' ) || defined( 'AdminNeo\SERVER' ) || class_exists( 'AdminNeo\Admin', false );
+    }
+
+    /**
+     * Answers 503 with Retry-After and a page that reloads itself after a second, without a script (a meta refresh),
+     * for a worker that cannot serve AdminNeo; the next request goes to a fresh worker.
+     */
+    public static function answerReloadSoon()
+    {
+        http_response_code( 503 );
+        header( 'Retry-After: 1' );
+        header( 'Content-Type: text/html; charset=utf-8' );
+        header( 'Cache-Control: no-store' );
+        echo self::reloadSoonPage();
+    }
+
+    /**
+     * The page of answerReloadSoon(): it reloads itself after a second.
+     *
+     * @return string
+     */
+    public static function reloadSoonPage()
+    {
+        return "<!DOCTYPE html>\n<html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"1\">"
+             . "<meta name=\"robots\" content=\"noindex, nofollow\"><title>AdminNeo</title></head>"
+             . "<body><p>AdminNeo is starting, one moment.</p></body></html>\n";
+    }
+
+    /**
+     * Removes the kernel's Content-Security-Policy-Report-Only header (the report-only companion of an enforced
+     * policy) from the response; AdminNeo's own Content-Security-Policy replaces the enforced one when it is sent.
+     * Returns whether the header had been set.
+     *
+     * @return bool
+     */
+    public static function removeKernelReportOnlyPolicy()
+    {
+        $name = class_exists( 'expContentSecurityPolicy' ) ? \expContentSecurityPolicy::HEADER_REPORT_ONLY : 'Content-Security-Policy-Report-Only';
+        $had = false;
+        foreach ( headers_list() as $header )
+        {
+            if ( stripos( $header, $name . ':' ) === 0 )
+                $had = true;
+        }
+        header_remove( $name );
+        return $had;
     }
 
     /**

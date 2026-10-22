@@ -7,6 +7,8 @@ Part[dsenavigationpart]=DS Editor
 #Tabs[]=dse
 
 [Topmenu_dse]
+# Icon - the icon admin4 draws before the tab's name: a name of design.ini [AdminDesignSettings] IconList[]
+Icon=brush
 NavigationPartIdentifier=dsenavigationpart
 Name=DS Editor
 Tooltip=Database Source Editor

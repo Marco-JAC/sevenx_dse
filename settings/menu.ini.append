@@ -25,7 +25,7 @@ Shown[edit]=true
 Shown[navigation]=true
 # We don't show it in browse mode
 Shown[browse]=true
-PolicyList[]=dse/dashboard
+PolicyList[]=dse/dse
 
 [Leftmenu_setup]
 Links[dse]=dse/dashboard

@@ -1,9 +1,9 @@
 # sevenx_dse — 7x Database Source Editor (Stable; Open Source; eZ Publish Legacy Extension)
 
-[![PHP](https://img.shields.io/badge/PHP-8.3%2B-8892BF?logo=php&logoColor=white)](https://php.net)
-[![Platform](https://img.shields.io/badge/Exponential%20Platform-Legacy-orange)](https://github.com/se7enxweb/exponential-platform-legacy)
-[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
-[![GitHub issues](https://img.shields.io/github/issues/se7enxweb/sevenx_dse)](https://github.com/se7enxweb/sevenx_dse/issues)
+[![PHP](https://img.shields.io/badge/PHP-8.3%2B-8892BF.png?logo=php&logoColor=white)](https://php.net)
+[![Platform](https://img.shields.io/badge/Exponential%20Platform-Legacy-orange.png)](https://github.com/se7enxweb/exponential-platform-legacy)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.png)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+[![GitHub issues](https://img.shields.io/badge/issues-GitHub-blue.png)](https://github.com/se7enxweb/sevenx_dse/issues)
 
 > **sevenx_dse** is a downstream fork of [AdminNeo](https://www.adminneo.org/) embedded as a native eZ Publish Legacy extension — delivering raw SQL access, table browsing, schema inspection, import/export, and multi-driver database support (MySQL, SQLite, PostgreSQL) directly inside the Exponential Platform Legacy admin interface, scoped behind eZ Publish role-based permissions.
 

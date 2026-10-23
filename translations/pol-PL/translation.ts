@@ -38,11 +38,11 @@
     </message>
     <message>
         <source>Change database</source>
-        <translation>Zmień bazę danych</translation>
+        <translation>Zmienić bazę danych</translation>
     </message>
     <message>
         <source>Return to the database selector</source>
-        <translation>Wróć do wyboru bazy danych</translation>
+        <translation>Wrócić do wyboru bazy danych</translation>
     </message>
     <message>
         <source>The Database Source Editor opens the database of this site in AdminNeo, inside the administration: browse and edit the rows of any table, run SQL, look at the structure, export and import. It works on the live data directly, past every check the administration makes.</source>
@@ -106,7 +106,7 @@
     </message>
     <message>
         <source>Run SQL</source>
-        <translation>Uruchom SQL</translation>
+        <translation>Uruchomić SQL</translation>
     </message>
     <message>
         <source>Type any statement and see its result. A SELECT reads; every other statement changes the live data at once.</source>
@@ -130,7 +130,7 @@
     </message>
     <message>
         <source>Open another database</source>
-        <translation>Otwórz inną bazę danych</translation>
+        <translation>Otworzyć inną bazę danych</translation>
     </message>
     <message>
         <source>Sign in to another server or an SQLite file inside the site directory. Drivers: %drivers.</source>
@@ -166,7 +166,7 @@
     </message>
     <message>
         <source>Open the editor</source>
-        <translation>Otwórz edytor</translation>
+        <translation>Otworzyć edytor</translation>
     </message>
     <message>
         <source>Prefer the pages of the administration where they exist: they keep caches, search and the audit trail in step, which a change made here does not.</source>
@@ -178,11 +178,11 @@
     </message>
     <message>
         <source>Proceed to the database</source>
-        <translation>Przejdź do bazy danych</translation>
+        <translation>Przejść do bazy danych</translation>
     </message>
     <message>
         <source>Cancel and go back</source>
-        <translation>Anuluj i wróć</translation>
+        <translation>Anulować i wrócić</translation>
     </message>
 </context>
 </TS>

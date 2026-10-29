@@ -50,7 +50,7 @@ html[data-a4-theme="dark"] .a4-dse-editor {
   --button-default-text: var(--a4-on-accent);
   --button-default-text-hover: var(--a4-on-accent-hover);
   --table-bg: var(--a4-card);
-  --table-header-bg: var(--a4-soft);
+  --table-header-bg: var(--a4-head-bg);
   --table-border: var(--a4-line);
   --table-row-border: var(--a4-line);
   --code-bg: var(--a4-code-bg);

@@ -17,7 +17,7 @@ class sevenx_dseInfo
             'Info_url'  => 'https://github.com/se7enxweb/sevenx_dse',
             'Includes the following third-party software' => array(
                 'Name'    => 'AdminNeo',
-                'Version' => '1.1.17',
+                'Version' => '5.3.0-dev',
                 'Copyright' => 'Copyright &copy; 2007 - 2025 Jakub Vrána, 2024 - 2025 Peter Knut',
                 'License' => 'Apache License 2.0 or GNU General Public License v2.0',
             ),

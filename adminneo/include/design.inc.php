@@ -290,7 +290,22 @@ function get_nonce(): string
 	// Kept in $GLOBALS, not a function static: a persistent worker (Velocity) clears
 	// $GLOBALS per request but never a static, which would reuse one nonce forever.
 	if (empty($GLOBALS["AdminNeoCspNonce"])) {
-		$GLOBALS["AdminNeoCspNonce"] = Random::strongKey();
+		// Embedded in the administration (dse/dashboard, NEO_BASE_URL), AdminNeo sends no headers: the page's
+		// Content-Security-Policy is the administration's. Its scripts then need the administration's nonce, or the
+		// browser blocks every one of them (the table figures, the check boxes, the confirmations before Drop
+		// and Truncate). The nonce is taken from the policy header the kernel has already set for this response
+		// (it sets its headers before the view runs), so it is the one the browser checks. Without a nonce
+		// there, AdminNeo's own, as before.
+		$nonce = "";
+		if (defined('NEO_BASE_URL')) {
+			foreach (headers_list() as $header) {
+				if (preg_match("~^Content-Security-Policy(-Report-Only)?:.*'nonce-([A-Za-z0-9_+/=-]+)'~i", $header, $match)) {
+					$nonce = $match[2];
+					break;
+				}
+			}
+		}
+		$GLOBALS["AdminNeoCspNonce"] = $nonce !== "" ? $nonce : Random::strongKey();
 	}
 
 	return $GLOBALS["AdminNeoCspNonce"];

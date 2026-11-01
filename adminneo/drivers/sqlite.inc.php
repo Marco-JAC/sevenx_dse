@@ -331,16 +331,120 @@ if (isset($_GET["sqlite"])) {
 		return [];
 	}
 
-	function table_status($name = "") {
+	/**
+	 * @param bool $fast Without the row counts, as the other drivers do: a COUNT(*) reads a whole table, and the
+	 *   callers that ask for $fast (the navigation panel on every page, the table and index pages) never show them.
+	 */
+	function table_status($name = "", $fast = false) {
 		$return = [];
 		foreach (get_rows("SELECT name AS Name, type AS Engine, 'rowid' AS Oid, '' AS Auto_increment FROM sqlite_master WHERE type IN ('table', 'view') " . ($name != "" ? "AND name = " . q($name) : "ORDER BY name")) as $row) {
-			$row["Rows"] = Connection::get()->getValue("SELECT COUNT(*) FROM " . idf_escape($row["Name"]));
+			if (!$fast) {
+				$row["Rows"] = Connection::get()->getValue("SELECT COUNT(*) FROM " . idf_escape($row["Name"]));
+			}
 			$return[$row["Name"]] = $row;
 		}
 		foreach (get_rows("SELECT * FROM sqlite_sequence" . ($name != "" ? " WHERE name = " . q($name) : ""), null, "") as $row) {
 			$return[$row["name"]]["Auto_increment"] = $row["seq"];
 		}
 		return $return;
+	}
+
+	/**
+	 * The row counts of the database page (script=db), counted once and reused for a while (sevenx_dse).
+	 *
+	 * A COUNT(*) reads a whole table: on a large database the column takes seconds. The counts are kept in the
+	 * cache directory, keyed by the database file, with the size and modification time of the file and its -wal
+	 * file at the time of counting. They are reused
+	 * - as exact counts while those four values are unchanged (nothing has been written since), and
+	 * - as approximate counts ($meta["stale"], shown with "~") for up to dse.ini [DSESettings] RowCountCacheTTL
+	 *   seconds (default 120, 0 = never) after the database has changed.
+	 * Otherwise, or when $recount is set, the tables are counted again. Views are never counted (the page shows
+	 * no rows for them). Without the Exponential cache directory nothing is kept and every call counts.
+	 *
+	 * @param string[] $tables
+	 * @param ?array $meta Receives "time" (when counted), "cached" and "stale".
+	 * @return array table => rows (int), or null where the count failed (nothing is cached then)
+	 */
+	function dse_row_counts(array $tables, bool $recount, ?array &$meta = null): array {
+		$file = (string) DB;
+		if (defined('AdminNeo\DSE_SQLITE_BASE') && $file !== '' && $file[0] !== '/') {
+			$file = \AdminNeo\DSE_SQLITE_BASE . '/' . $file;
+		}
+		$fingerprint = [];
+		foreach ([$file, "$file-wal"] as $part) {
+			clearstatcache(true, $part);
+			$stat = @stat($part);
+			$fingerprint[] = $stat ? $stat["size"] . "@" . $stat["mtime"] : "-";
+		}
+
+		$cacheFile = null;
+		$ttl = 120;
+		if (class_exists('eZSys') && class_exists('eZINI')) {
+			$cacheFile = \eZSys::cacheDirectory() . "/dse/rowcounts-" . sha1((string) realpath($file)) . ".json";
+			$ini = \eZINI::instance("dse.ini");
+			if ($ini->hasVariable("DSESettings", "RowCountCacheTTL")) {
+				$ttl = max(0, (int) $ini->variable("DSESettings", "RowCountCacheTTL"));
+			}
+		}
+
+		if ($cacheFile && !$recount && is_file($cacheFile)) {
+			$cached = json_decode((string) @file_get_contents($cacheFile), true);
+			if (is_array($cached) && isset($cached["fingerprint"], $cached["time"], $cached["counts"]) && is_array($cached["counts"])
+				&& !array_diff($tables, array_keys($cached["counts"]))
+			) {
+				$unchanged = $cached["fingerprint"] === $fingerprint;
+				if ($unchanged || ($ttl > 0 && time() - (int) $cached["time"] <= $ttl)) {
+					$meta = ["time" => (int) $cached["time"], "cached" => true, "stale" => !$unchanged];
+					return array_intersect_key($cached["counts"], array_flip($tables));
+				}
+			}
+		}
+
+		$counts = [];
+		$complete = true;
+		foreach ($tables as $table) {
+			$count = Connection::get()->getValue("SELECT COUNT(*) FROM " . idf_escape($table));
+			$counts[$table] = ($count === false || $count === null ? null : (int) $count);
+			$complete = $complete && $counts[$table] !== null;
+		}
+		$meta = ["time" => time(), "cached" => false, "stale" => false];
+
+		// Written atomically (temporary file, then rename) in a directory made with the installation's directory
+		// mode, so Exponential Velocity (root) and PHP-FPM (the site's user) can both replace it. A table that
+		// could not be counted keeps the whole result out of the cache.
+		if ($cacheFile && $complete && class_exists('eZFile')) {
+			@\eZFile::create(basename($cacheFile), dirname($cacheFile),
+				json_encode(["fingerprint" => $fingerprint, "time" => $meta["time"], "counts" => $counts]), true);
+		}
+
+		return $counts;
+	}
+
+	/**
+	 * The note under the Rows column of the database page: when the counts were made, whether they are approximate,
+	 * and the link that counts them again (sevenx_dse).
+	 *
+	 * @param array $meta From dse_row_counts().
+	 */
+	function dse_row_counts_note(array $meta): string {
+		$tr = function (string $source, string $time): string {
+			return class_exists('ezpI18n')
+				? \ezpI18n::tr("extension/sevenx_dse", $source, null, ["%time" => $time])
+				: str_replace("%time", $time, $source);
+		};
+		$time = date("H:i:s", $meta["time"]);
+		if ($meta["stale"]) {
+			$label = $tr("~ approximate, as of %time", $time);
+			$title = $tr("Counted at %time and kept for a short while; the database has changed since. Count the rows again.", $time);
+		} elseif ($meta["cached"]) {
+			$label = $tr("counted at %time, unchanged since", $time);
+			$title = $tr("Counted at %time; nothing has been written to the database since. Count the rows again.", $time);
+		} else {
+			$label = $tr("counted at %time", $time);
+			$title = $tr("Count the rows again.", $time);
+		}
+
+		return "<a href='" . h(ME . "dse_recount=1") . "' class='dse-rows-note' title='" . h($title) . "'>" . h($label) . "</a>";
 	}
 
 	function is_view($table_status) {

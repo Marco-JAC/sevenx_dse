@@ -135,6 +135,12 @@ The extension works without any configuration. It reads these settings:
 #            password in its source; for trusted development installations only)
 # disabled - (default) AdminNeo asks for the password itself
 InsecureUse=disabled
+
+# SQLite: how many seconds the row counts of the database page may be shown as
+# approximate ("~", with the time they were counted and a link that counts them
+# again) after the database has changed. While nothing has been written since,
+# the counts are shown as exact. 0 - always count again after a change.
+RowCountCacheTTL=120
 ```
 
 Override it in `settings/override/dse.ini.append.php` or in a siteaccess's settings. When it is enabled, the

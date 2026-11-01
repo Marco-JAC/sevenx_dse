@@ -8,7 +8,26 @@ if ($_GET["script"] == "db") {
 	$sums = ["Data_length" => 0, "Index_length" => 0, "Data_free" => 0];
 	$data = [];
 
-	foreach (table_status() as $name => $table_status) {
+	// SQLite (sevenx_dse): the row counts come from dse_row_counts(), which reuses recent counts instead of reading
+	// every table on every visit and labels reused ones; this request only reads, so the connection is read-only.
+	$rows_meta = null;
+	if (DIALECT == "sqlite" && function_exists('AdminNeo\dse_row_counts')) {
+		Connection::get()->query("PRAGMA query_only = 1");
+		$statuses = table_status('', true);
+		$counted = [];
+		foreach ($statuses as $name => $table_status) {
+			if (!is_view($table_status)) {
+				$counted[] = (string) $name;
+			}
+		}
+		foreach (dse_row_counts($counted, !empty($_GET["dse_recount"]), $rows_meta) as $name => $rows) {
+			$statuses[$name]["Rows"] = $rows;
+		}
+	} else {
+		$statuses = table_status();
+	}
+
+	foreach ($statuses as $name => $table_status) {
 		$data["Comment-$name"] = h($table_status["Comment"]);
 
 		if (!is_view($table_status)) {
@@ -19,7 +38,7 @@ if ($_GET["script"] == "db") {
 				if ($table_status[$key] != "") {
 					$val = format_number($table_status[$key]);
 					if ($val >= 0) {
-						$data["$key-$name"] = ($key == "Rows" && $val && $table_status["Engine"] == (DIALECT == "pgsql" ? "table" : "InnoDB")
+						$data["$key-$name"] = ($key == "Rows" && (($val && $table_status["Engine"] == (DIALECT == "pgsql" ? "table" : "InnoDB")) || ($rows_meta && $rows_meta["stale"]))
 							? "~ $val"
 							: $val
 						);
@@ -37,6 +56,9 @@ if ($_GET["script"] == "db") {
 
 	foreach ($sums as $key => $val) {
 		$data["sum-$key"] = format_number($val);
+	}
+	if ($rows_meta) {
+		$data["dse-rows-note"] = dse_row_counts_note($rows_meta);
 	}
 
 	echo json_encode($data, JSON_UNESCAPED_UNICODE);

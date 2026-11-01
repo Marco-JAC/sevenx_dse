@@ -171,7 +171,7 @@ if ($_GET["ns"] === "") {
 		foreach (["Data_length", "Index_length", "Data_free"] as $key) {
 			echo "<td align='right' id='sum-$key'>";
 		}
-		echo "<td></td><td></td>";
+		echo "<td></td><td align='right' id='dse-rows-note'></td>"; // sevenx_dse: when the SQLite rows were counted
 		if (support("comment")) {
 			echo "<td></td>";
 		}
@@ -324,6 +324,6 @@ if ($_GET["ns"] === "") {
 	}
 
 	if ($tables_list) {
-		echo script("ajaxSetHtml('" . js_escape(ME) . "script=db');");
+		echo script("ajaxSetHtml('" . js_escape(ME) . "script=db" . (!empty($_GET["dse_recount"]) ? "&dse_recount=1" : "") . "');"); // sevenx_dse: count the SQLite rows again
 	}
 }
